@@ -20,35 +20,33 @@ void app_surface_event(u8 type, u8 index, u8 value)
     u8 data[2];
     data[0] = index;
     data[1] = value;
-    hal_send_sysex(DINMIDI,data,2);
+    hal_send_midi(DINMIDI, NOTEON, data[0], data[1]);
+    hal_plot_led(TYPEPAD, data[0], data[1], 0, 0);
 }
 
 //______________________________________________________________________________
 
 void app_midi_event(u8 port, u8 status, u8 d1, u8 d2)
 {
-
+    hal_plot_led(TYPEPAD, d1, 0, d2, 0);
 }
 
 //______________________________________________________________________________
 
 void app_sysex_event(u8 port, u8 * data, u16 count)
 {
-    hal_plot_led(TYPEPAD, data[0], data[1], 0, 0);
 }
 
 //______________________________________________________________________________
 
 void app_aftertouch_event(u8 index, u8 value)
 {
-    
 }
 
 //______________________________________________________________________________
 
 void app_cable_event(u8 type, u8 value)
 {
-
 }
 
 //______________________________________________________________________________
