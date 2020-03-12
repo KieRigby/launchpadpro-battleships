@@ -1,0 +1,4 @@
+enum MIDI_MESSAGE 
+{ 
+    WAITING_TO_PAIR
+};
