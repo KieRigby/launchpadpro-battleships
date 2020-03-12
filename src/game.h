@@ -17,6 +17,7 @@ u8 i_am_ready;
 
 //stores x,y and colour in RGB
 u8 grid[8][8][3];
+u8 persistent_grid[8][8][3];
 
 void initialize()
 {
@@ -32,6 +33,11 @@ void initialize()
     for (int i = 0; i < NUM_SHIPS; ++i)
         for (int j = 0; j < MAX_SHIP_SIZE; ++j)
             ships[i][j] = 0;
+
+    for (int x = 0; x < 8; ++x)
+        for (int y = 0; y < 8; ++y)
+            for (int colour = 0; colour < 3; ++colour)
+                grid[x][y][colour] = 0;
 
     for (int x = 0; x < 8; ++x)
         for (int y = 0; y < 8; ++y)
@@ -113,9 +119,24 @@ void my_turn(u32 ms) {
 
     if (shouldDraw)
     {
-        for (int x = 0; x < 8; ++x)
-            for (int y = 0; y < 8; ++y)
+        for (int x = 0; x < 8; ++x){
+            for (int y = 0; y < 8; ++y){
+                grid[x][y][0] = 0;
+                grid[x][y][1] = 0;
                 grid[x][y][2] = MAXLED;
+            }
+        }
+
+        for (int x = 0; x < 8; ++x){
+            for (int y = 0; y < 8; ++y){
+                if (persistent_grid[x][y][0] == MAXLED){
+                    grid[x][y][0] = MAXLED;
+                    grid[x][y][1] = 0;
+                    grid[x][y][2] = 0;
+                }
+            }
+        }
+                
 
         for (int i = 0; i < NUM_SHIPS; ++i) {
             for (int j = 0; j < MAX_SHIP_SIZE; ++j)
@@ -147,6 +168,31 @@ void my_turn(u32 ms) {
 void your_turn(u32 ms) {
     hal_plot_led(TYPEPAD, 10, MAXLED, 0, 0);
     
+    for (int x = 0; x < 8; ++x){
+        for (int y = 0; y < 8; ++y)
+        {
+            grid[x][y][0] = 0;
+            grid[x][y][1] = 0;
+            grid[x][y][2] = MAXLED;
+        }
+    }
+            
+
+        for (int i = 0; i < NUM_SHIPS; ++i) {
+            for (int j = 0; j < MAX_SHIP_SIZE; ++j)
+            {
+                if (ships[i][j] != 0) 
+                {
+                    u8 x = getX(ships[i][j]);
+                    u8 y = getY(ships[i][j]);
+                    grid[x][y][0] = 10;
+                    grid[x][y][1] = i * 15;
+                    grid[x][y][2] = 30;
+                }
+                    
+            }  
+        }
+
 }
 
 
@@ -227,8 +273,8 @@ void handle_miss(u8 index)
     u8 x = getX(index);
     u8 y = getY(index);
 
-    grid[x][y][0] = MAXLED;
-    grid[x][y][1] = 0;
-    grid[x][y][2] = 0;
+    persistent_grid[x][y][0] = MAXLED;
+    persistent_grid[x][y][1] = 0;
+    persistent_grid[x][y][2] = 0;
     my_turn(1000);
 }
