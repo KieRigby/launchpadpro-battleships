@@ -5,6 +5,7 @@
 //______________________________________________________________________________
 
 #include "app.h"
+#include "utils.h"
 
 // buffer to store pad states for flash save
 #define BUTTON_COUNT 100
