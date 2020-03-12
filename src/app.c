@@ -20,6 +20,13 @@ void app_surface_event(u8 type, u8 index, u8 value)
 {
     if (GAME_STATE == PLACEMENT && value != 0)
         placement_surface_event(index);
+        
+    if (GAME_STATE == MY_TURN && value != 0)
+    {
+        GAME_STATE = YOUR_TURN;
+        hal_send_midi(DINMIDI, NOTEON, TAKE_TURN, index);
+    }
+       
 }
 
 //______________________________________________________________________________
@@ -49,6 +56,21 @@ void app_midi_event(u8 port, u8 status, u8 d1, u8 d2)
             you_are_ready = 1;
         }
     }
+
+    if (d1 == TAKE_TURN)
+    {
+        send_response(d2);
+        GAME_STATE = MY_TURN;
+    }
+
+    // if HIT
+    if (d1 >= 32)
+    {
+        handle_hit(d1 - 32, d2);
+    }else if (d1 >= 16){
+        handle_miss(d2);
+    }
+
         
         
 }

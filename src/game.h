@@ -8,6 +8,7 @@ u8 DRAW_RATE;
 #define NEXT_SHIP_BUTTON 89
 
 u8 ships[NUM_SHIPS][MAX_SHIP_SIZE];
+u8 your_ships[NUM_SHIPS][MAX_SHIP_SIZE];
 u8 current_ship = 0;
 u8 current_ship_size = 0;
 
@@ -106,13 +107,47 @@ void placement(u32 ms)
 }
 
 void my_turn(u32 ms) {
-    hal_plot_led(TYPEPAD, 10, 0,MAXLED, 0);
+    hal_plot_led(TYPEPAD, 10, 0, MAXLED, 0);
+
+    static u8 shouldDraw = 1;
+
+    if (shouldDraw)
+    {
+        for (int x = 0; x < 8; ++x)
+            for (int y = 0; y < 8; ++y)
+                grid[x][y][2] = MAXLED;
+
+        for (int i = 0; i < NUM_SHIPS; ++i) {
+            for (int j = 0; j < MAX_SHIP_SIZE; ++j)
+            {
+                if (your_ships[i][j] != 0) 
+                {
+                    u8 x = getX(your_ships[i][j]);
+                    u8 y = getY(your_ships[i][j]);
+                    grid[x][y][0] = 0;
+                    grid[x][y][1] = MAXLED;
+                    grid[x][y][2] = 0;
+                }
+                    
+            }  
+        }
+
+    }
+
+    // if (ms > 0)
+    // {
+    //     shouldDraw = 0;
+    //     --ms;
+    // }else {
+    //     shouldDraw = 1;
+    // }
+    
 }
 
 void your_turn(u32 ms) {
-    hal_plot_led(TYPEPAD, 10,MAXLED, 0, 0);
+    hal_plot_led(TYPEPAD, 10, MAXLED, 0, 0);
+    
 }
-
 
 
 
@@ -155,4 +190,45 @@ void placement_surface_event(u8 index)
             current_ship_size++;
         }
     }
+}
+
+
+void send_response(u8 index)
+{
+    for (int i = 0; i < NUM_SHIPS; ++i)
+    {
+        for (int j = 0; j < MAX_SHIP_SIZE; ++j)
+        {
+            if (ships[i][j] == index)
+                //HIT command would be 0001 + ship number (>16)
+                hal_send_midi(DINMIDI, NOTEON, 32 + i, index);
+            else
+                //MISS command would be 0000 + ship number
+                hal_send_midi(DINMIDI, NOTEON, 16 + i, index);
+        }
+    }
+}
+
+void handle_hit(u8 ship_number, u8 index)
+{
+    for (int j = 0; j < MAX_SHIP_SIZE; ++j)
+    {
+        if (your_ships[ship_number][j] == 0)
+        {
+            your_ships[ship_number][j] = index;
+            break;
+        }
+    }   
+    my_turn(1000);
+}
+
+void handle_miss(u8 index)
+{
+    u8 x = getX(index);
+    u8 y = getY(index);
+
+    grid[x][y][0] = MAXLED;
+    grid[x][y][1] = 0;
+    grid[x][y][2] = 0;
+    my_turn(1000);
 }
